@@ -1,31 +1,39 @@
-//En este archivo se configura e inicia el servidor MCP 
-
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"; // Importa el servidor MCP
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"; // Importa el transporte estándar de entrada/salida
+import "dotenv/config"; 
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"; 
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"; 
 import { registerPing } from "./tools/ping.js";
-import { registerSlugify } from "./tools/slugify.js"; // Importa la función para registrar la tool slugify
+import { registerSlugify } from "./tools/slugify.js"; 
 import { registerSum } from "./tools/sum.js";
+import { registerCreateRepository } from "./tools/create-repository.js"; // Tool: crear repositorio
+import { registerListRepositories } from "./tools/list-repositories.js"; // Tool: listar repositorios
+import { registerCreateIssue } from "./tools/create-issue.js"; // Tool: crear issue
+import { registerListIssues } from "./tools/list-issues.js"; // Tool: listar issues
+import { registerCreateCommit } from "./tools/create-commit.js"; 
 
-export const server = new McpServer({ // Crea una instancia del servidor MCP y define sus propiedades como nombre y versión, la definicion de servidor varia segun la version del SDK
-  name: "HX-GCAMEY-agent", 
+export const server = new McpServer({ 
+  name: "HX-GCAMEY-agent",
   version: "1.0.0",
 });
 
-async function main():Promise<void> { // Función principal que inicia el servidor MCP, con promesa de void que sirve para indicar que no retorna ningún valor
-  registerPing(server); // Registra la tool ping en el servidor MCP
-  registerSlugify(server); // Registra la tool slugify en el servidor MCP
-  registerSum(server); // Registra la tool sum en el servidor MCP
-  
-    const transport = new StdioServerTransport(); // Crea una instancia del transporte estándar de entrada/salida
-  await server.connect(new StdioServerTransport()); // Conecta el servidor MCP utilizando el transporte estándar de entrada/salida
+async function main():Promise<void> { 
+  registerPing(server); 
+  registerSlugify(server); 
+  registerSum(server); 
 
-  console.error("[mcp] Server connected"); // Mensaje de error que indica que el servidor MCP se ha conectado correctamente
+  
+  registerCreateRepository(server);
+  registerListRepositories(server);
+  registerCreateIssue(server);
+  registerListIssues(server);
+  registerCreateCommit(server);
+
+  const transport = new StdioServerTransport(); 
+  await server.connect(transport); 
+
+  console.error("[mcp] Server connected"); 
 }
 
 main().catch((err) => {
-  console.error("[mcp] fatal:", err); // Mensaje de error que indica que ocurrió un error fatal al iniciar el servidor MCP
-  process.exit(1); // Termina el proceso para que la terminal no se quede colgada al ocurrir un error
+  console.error("[mcp] fatal:", err); 
+  process.exit(1); 
 });
-
-
-
