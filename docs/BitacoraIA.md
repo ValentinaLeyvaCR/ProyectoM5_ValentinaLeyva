@@ -1,1 +1,0 @@
-// aqui van las preguntas a la ia ver la homework 

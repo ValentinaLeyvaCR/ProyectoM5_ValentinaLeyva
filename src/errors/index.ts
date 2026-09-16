@@ -1,9 +1,11 @@
-export abstract class AppError extends Error {
+//Este archivo es el que maneja los errores que se puedan presentar en el mcp server.
+
+export abstract class AppError extends Error { // aca se defina una clase que tiene como proposito definir la estructura basica de un error.
   abstract readonly code: string;
   readonly userMessage: string;
   readonly cause?: unknown;
 
-  constructor(userMessage: string, cause?: unknown) {
+  constructor(userMessage: string, cause?: unknown) { // el constructor recibe como parametro el mensaje de error y la causa del error. de esta forma podemos tener un control sobre los errores que se puedan presentar en el mcp server.
     super(userMessage);
     this.userMessage = userMessage;
     this.cause = cause;
@@ -12,17 +14,17 @@ export abstract class AppError extends Error {
 }
 
 
-export class ValidationError extends AppError {
+export class ValidationError extends AppError { // clase que extiende de AppError y define el tipo de error como VALIDATION_ERROR. que pasa cuando un dato es invalido.
   readonly code = "VALIDATION_ERROR";
 }
 
 
-export class AuthenticationError extends AppError {
+export class AuthenticationError extends AppError { // clase que extiende de AppError y define el tipo de error como AUTHENTICATION_ERROR. que pasa cuando no se tiene permisos para realizar una operacion.
   readonly code = "AUTHENTICATION_ERROR";
 }
 
 
-export class GitHubAPIError extends AppError {
+export class GitHubAPIError extends AppError { // clase que extiende de AppError y define el tipo de error como GITHUB_API_ERROR. que pasa cuando hay un error en la API de GitHub.
 
 
   readonly code: string = "GITHUB_API_ERROR";
@@ -35,7 +37,7 @@ export class GitHubAPIError extends AppError {
 }
 
 
-export class RateLimitError extends GitHubAPIError {
+export class RateLimitError extends GitHubAPIError { // clase que extiende de GitHubAPIError y define el tipo de error como RATE_LIMIT_ERROR. que pasa cuando se alcanza el limite de solicitudes a la API de GitHub.
   override readonly code = "RATE_LIMIT_ERROR";
   readonly retryAfterSeconds?: number;
 
@@ -46,7 +48,7 @@ export class RateLimitError extends GitHubAPIError {
 }
 
 
-export class NetworkError extends AppError {
+export class NetworkError extends AppError { // clase que extiende de AppError y define el tipo de error como NETWORK_ERROR. que pasa cuando hay un error en la red.
   readonly code = "NETWORK_ERROR";
 }
 
@@ -57,7 +59,7 @@ interface OctokitLikeError {
   message: string;
 }
 
-function isOctokitLikeError(error: unknown): error is OctokitLikeError {
+function isOctokitLikeError(error: unknown): error is OctokitLikeError { // funcion que verifica si un error es de tipo OctokitLikeError. osea si tiene un estatus.
   return (
     typeof error === "object" &&
     error !== null &&
@@ -66,7 +68,7 @@ function isOctokitLikeError(error: unknown): error is OctokitLikeError {
   );
 }
 
-function getRetryAfterSeconds(error: OctokitLikeError): number | undefined {
+function getRetryAfterSeconds(error: OctokitLikeError): number | undefined { // funcion que obtiene el tiempo de espera para reintentar la solicitud.
   const raw = error.response?.headers?.["retry-after"];
   if (!raw) return undefined;
   const seconds = Number(raw);
@@ -78,7 +80,7 @@ function isNetworkErrorMessage(message: string): boolean {
 }
 
 
-export function classifyError(error: unknown, context?: { owner?: string; repo?: string }): AppError {
+export function classifyError(error: unknown, context?: { owner?: string; repo?: string }): AppError { // funcion que clasifica los errores que se puedan presentar en el mcp server.
 
   if (error instanceof AppError) return error;
 
@@ -122,8 +124,7 @@ export function classifyError(error: unknown, context?: { owner?: string; repo?:
 
     if (status === 422) {
       return new ValidationError(
-        `GitHub rechazó la solicitud porque algunos datos no son válidos (por ejemplo, un nombre de repositorio que ya existe). Detalle: ${
-          error.response?.data?.message ?? error.message
+        `GitHub rechazó la solicitud porque algunos datos no son válidos (por ejemplo, un nombre de repositorio que ya existe). Detalle: ${error.response?.data?.message ?? error.message
         }`,
         error
       );
@@ -138,8 +139,7 @@ export function classifyError(error: unknown, context?: { owner?: string; repo?:
     }
 
     return new GitHubAPIError(
-      `GitHub devolvió un error inesperado (status ${status}). Detalle: ${
-        error.response?.data?.message ?? error.message
+      `GitHub devolvió un error inesperado (status ${status}). Detalle: ${error.response?.data?.message ?? error.message
       }`,
       status,
       error
